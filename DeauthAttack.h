@@ -1,9 +1,13 @@
 #include "pch.h"
 #include "wlanhdr.h"
 
+const int AP_TO_BROADCAST = 0;
+const int AP_TO_STATION = 1;
+const int STATION_TO_AP = 2;
 
 const uint16_t DEAUTH_FRAME = 0x00c0;
 const uint16_t HANDSHAKE_TIMEOUT = 0x000f;
+const uint16_t CLASS3_NONASSOCIATED_STA = 0x0007;
 
 
 /**
@@ -14,8 +18,9 @@ typedef struct WLAN_DEAUTH_ATTACK_PAKCET {
     uint64_t size;
 } wlan_deauth_pkt;
 
+
 /**
- * @brief deauth attack 패킷 생성용 클래스.
+ * @brief Deauth attack 패킷 생성용 클래스.
 */
 class DeauthAttack
 {
@@ -25,10 +30,9 @@ private:
     dot11_wlm_deauth_hdr wlm_hdr;
 
     wlan_deauth_pkt* assemble_pkt();
-    void init_pkt(const uint8_t ap_mac_addr[6]);
+    void init_pkt(const uint8_t* ap_mac_addr, const uint8_t* st_mac_addr, const int mode);
 public:
-    DeauthAttack(const uint8_t ap_mac_addr[6]);
-    DeauthAttack(const uint8_t ap_mac_addr[6], const uint8_t st_mac_addr[6]);
+    DeauthAttack(const uint8_t* ap_mac_addr, const uint8_t* st_mac_addr, const int mode);
     ~DeauthAttack();
 
     wlan_deauth_pkt* get_pkt();

