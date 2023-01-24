@@ -39,6 +39,7 @@ int main(int argc, char* argv[])
 
         while (res == 0)
         {
+            sleep(0);
             res = do_deauth_attack(handle, attack_pkt);
         }
         break;
@@ -53,6 +54,7 @@ int main(int argc, char* argv[])
 
         while (true)
         {
+            sleep(0);
             res = do_deauth_attack(handle, attack_pkt_ap_to_st);
             if (res != 0)
             {
