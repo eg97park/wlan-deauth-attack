@@ -178,6 +178,8 @@ typedef struct ieee80211_base_frame {
 
 /**
  * @brief beacon frame 구조체.
+ * @brief deauthentication frame 구조체.
+ * @brief authentication frame 구조체.
  * 
  */
 typedef struct ieee80211_beacon_frame {
@@ -187,6 +189,9 @@ typedef struct ieee80211_beacon_frame {
     uint8_t bssid[6];
     uint16_t frag_seq_num;
 } __attribute__((__packed__)) dot11_beacon_fhdr;
+typedef dot11_beacon_fhdr dot11_deauth_fhdr;
+typedef dot11_beacon_fhdr dot11_auth_fhdr;
+typedef dot11_beacon_fhdr dot11_asso_req_fhdr;
 
 
 /**
@@ -200,19 +205,6 @@ typedef struct ieee80211_data_frame {
     uint8_t src_addr[6];
     uint16_t frag_seq_num;
 } __attribute__((__packed__)) dot11_data_fhdr;
-
-
-/**
- * @brief deauthentication frame 구조체.
- * 
- */
-typedef struct ieee80211_deauth_frame {
-    dot11_base_fhdr base;
-    uint8_t rcv_addr[6];
-    uint8_t src_addr[6];
-    uint8_t bssid[6];
-    uint16_t frag_seq_num;
-} __attribute__((__packed__)) dot11_deauth_fhdr;
 
 
 /**
@@ -233,6 +225,27 @@ typedef struct ieee80211_wireless_management_beacon_header {
 typedef struct ieee80211_wireless_management_deauth_header {
     uint16_t reason_code;
 } __attribute__((__packed__)) dot11_wlm_deauth_hdr;
+
+
+/**
+ * @brief deauthentication frame의 wireless management 구조체.
+ * 
+ */
+typedef struct ieee80211_wireless_management_auth_header {
+    uint16_t auth_algo;
+    uint16_t auth_seq;
+    uint16_t stat_code;
+} __attribute__((__packed__)) dot11_wlm_auth_hdr;
+
+
+/**
+ * @brief association request frame의 wireless management 구조체.
+ * 
+ */
+typedef struct ieee80211_wireless_management_association_request_header {
+    uint16_t cap_info;
+    uint16_t listen_interval;
+} __attribute__((__packed__)) dot11_wlm_asso_req_hdr;
 
 
 const uint8_t BROADCAST_MAC_ADDR[6] = {
