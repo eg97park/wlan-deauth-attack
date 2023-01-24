@@ -19,16 +19,16 @@ bool parse(Param* param, int argc, char* argv[])
         return false;
     }
     param->if_ = argv[1];
-    param->ap_mac_ = argv[2];
+    param->ap_mac_ = parse_mac_addr(argv[2]);
     param->auth_opt_ = false;
 
     switch (argc)
     {
     case 4:
-        param->st_mac_ = argv[3];
+        param->st_mac_ = parse_mac_addr(argv[3]);
         break;
     case 5:
-        param->st_mac_ = argv[3];
+        param->st_mac_ = parse_mac_addr(argv[3]);
         if (std::strlen(argv[4]) == std::strlen(AUTH_OPT) &&
             std::strncmp(argv[4], AUTH_OPT, std::strlen(AUTH_OPT)) == 0)
         {
@@ -57,4 +57,22 @@ void dump(void* p, size_t n)
         if (i % 16 == 0) printf("\n");
     }
     printf("\n");
+}
+
+
+uint8_t* parse_mac_addr(const char* mac_addr)
+{
+    uint8_t* parsed_mac_addr = (uint8_t*)malloc(sizeof(uint8_t) * 6);
+    std::sscanf(
+        mac_addr,
+        "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
+        &parsed_mac_addr[0],
+        &parsed_mac_addr[1],
+        &parsed_mac_addr[2],
+        &parsed_mac_addr[3],
+        &parsed_mac_addr[4],
+        &parsed_mac_addr[5]
+    );
+    
+    return parsed_mac_addr;
 }

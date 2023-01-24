@@ -15,8 +15,8 @@ void usage(char* argv[]);
  */
 typedef struct {
     char* if_;
-    char* ap_mac_;
-    char* st_mac_;
+    uint8_t* ap_mac_;
+    uint8_t* st_mac_;
     bool auth_opt_;
 } __attribute__((__packed__)) Param;
 
@@ -42,3 +42,13 @@ bool parse(Param* param, int argc, char* argv[]);
  * @ref https://gitlab.com/gilgil/sns/-/wikis/byte-order/byte-order
  */
 void dump(void* p, size_t n);
+
+
+/**
+ * @brief 주어진 MAC 주소의 자료형을 문자열로부터 uint8_t*로 바꾸어 반환하는 함수.
+ * 
+ * @param mac_addr 00:01:02:03:04:05와 같이 주어진 MAC 주소 문자열.
+ * 
+ * @return uint8_t* 6개의 uint8_t 값으로 이루어진 배열의 첫 번째 원소의 주소.
+ */
+uint8_t* parse_mac_addr(const char* mac_addr);
