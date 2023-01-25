@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+# Sample packets
+*.pcap
+*.pcapng
+
+# Binary
+deauth-attack
+
+# vscode settings
+*.json
