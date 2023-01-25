@@ -31,6 +31,10 @@ class DeauthAttack
 {
 private:
     int mode;
+
+    const uint8_t* ap_mac_addr;
+    const uint8_t* st_mac_addr;
+
     static const dot11_radiotap_hdr rtap_hdr;
     dot11_deauth_fhdr deauth_fhdr;
     dot11_wlm_auth_hdr wlm_auth_hdr;
@@ -43,10 +47,10 @@ private:
     wlan_attack_pkt* assemble_auth_attack_asso_req_pkt();
     wlan_attack_pkt* assemble_deauth_attack_pkt();
 
-    void init_pkt(const uint8_t* ap_mac_addr, const uint8_t* st_mac_addr);
+    void init_pkt();
 public:
-    DeauthAttack(const uint8_t* ap_mac_addr, const uint8_t* st_mac_addr, const int mode);
+    DeauthAttack(const uint8_t* ap_mac_addr, const uint8_t* st_mac_addr);
     ~DeauthAttack();
 
-    wlan_attack_pkt* get_pkt();
+    wlan_attack_pkt* get_pkt(const int mode);
 };

