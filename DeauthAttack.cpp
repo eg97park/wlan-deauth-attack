@@ -13,6 +13,10 @@ DeauthAttack::DeauthAttack(const uint8_t* ap_mac_addr, const uint8_t* st_mac_add
 {
     this->ap_mac_addr = ap_mac_addr;
     this->st_mac_addr = st_mac_addr;
+    if (st_mac_addr == nullptr)
+    {
+        this->st_mac_addr = st_mac_addr;
+    }
 }
 
 
@@ -34,14 +38,6 @@ void DeauthAttack::init_pkt()
     switch (this->mode)
     {
     case DEAUTH_ATTACK_AP_TO_BROADCAST:
-        this->deauth_fhdr.base.fctl_field = DEAUTH_FRAME;
-        for (size_t i = 0; i < 6; i++)
-        {
-            this->deauth_fhdr.rcv_addr[i] = BROADCAST_MAC_ADDR[i];
-            this->deauth_fhdr.src_addr[i] = this->ap_mac_addr[i];
-        }
-        this->wlm_deauth_hdr.reason_code = HANDSHAKE_TIMEOUT;
-        break;
     case DEAUTH_ATTACK_AP_TO_STATION:
     {
         this->deauth_fhdr.base.fctl_field = DEAUTH_FRAME;
