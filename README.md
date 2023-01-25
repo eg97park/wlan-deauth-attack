@@ -18,3 +18,20 @@ sample : deauth-attack mon0 00:11:22:33:44:55 66:77:88:99:AA:BB
 * -auth 옵션이 주어지면 deauthentication이 아닌 authentication으로 공격한다(authentication frame 정보는 실제 일반 Station의 연결 과정에서 획득할 수 있다).
 
 
+### 구현 방식
+```
+./deauth-attack wlp45s0 11:22:33:44:55:66
+```
+* AP -> ALL:    Deauthentication (broadcast)
+
+```
+./deauth-attack wlp45s0 11:22:33:44:55:66 aa:bb:cc:dd:ee:ff
+```
+* AP -> STAION: Deauthentication (unicast)
+* STAION -> AP: Deauthentication (unicast)
+
+```
+./deauth-attack wlp45s0 11:22:33:44:55:66 aa:bb:cc:dd:ee:ff -auth
+```
+* STAION -> AP: Authentication (unicast)
+* STAION -> AP: Association Request (unicast)
